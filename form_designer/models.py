@@ -296,7 +296,7 @@ class FormField(models.Model):
     )
     is_required = models.BooleanField(_("is required"), default=True)
     child_form = models.ForeignKey(
-        Form, related_name="child_forms", verbose_name=_("form"), on_delete=models.CASCADE, blank=True, null=True
+        Form, related_name="child_forms", verbose_name=_("child form"), on_delete=models.CASCADE, blank=True, null=True
     )
 
     class Meta:
