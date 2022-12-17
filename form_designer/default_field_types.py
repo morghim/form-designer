@@ -81,13 +81,11 @@ FIELD_TYPES = [
         "field": partial(forms.CharField, widget=forms.HiddenInput),
         "clean_field": [disallow_choices],
     },
-    {
-        "type": "model",
-        "verbose_name": _("model"),
-        "field": partial(forms.JSONField, widget=forms.JSONField),
-        "clean_field": [disallow_choices],
-    },
+
 ]
+
+# add json field
+FIELD_TYPES.append({"type": "model", "verbose_name": _("model"), "field": forms.JSONField})
 
 # Add recaptcha field if available
 if apps.is_installed("captcha"):  # pragma: no cover
