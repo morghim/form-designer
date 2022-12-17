@@ -360,8 +360,7 @@ class FormField(models.Model):
             # The value of individual choices is slugified too.
             kwargs["initial"] = self.default_value
         if self.type == 'model':
-            form = self.child_form.form_class()
-            kwargs['fields'] = [e.get_field_attribue() for e in form.fields.all()]
+            kwargs['fields'] = self.child_form.get_fields()
         kwargs['hidden'] = self.type == 'hidden'
         return kwargs
 class FormSubmission(models.Model):
