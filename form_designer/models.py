@@ -361,6 +361,7 @@ class FormField(models.Model):
             kwargs["initial"] = self.default_value
         if self.type == 'model':
             kwargs['fields'] = self.child_form.get_fields()
+        kwargs['type'] = self.type
         kwargs['hidden'] = self.type == 'hidden'
         return kwargs
 class FormSubmission(models.Model):
