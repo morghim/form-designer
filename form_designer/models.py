@@ -217,6 +217,9 @@ class Form(models.Model):
             for submission in submissions
         ]
 
+    def get_fields(self):
+        return [e.get_field_attribue() for e in self.fields.all()]
+
 
 FIELD_TYPES = import_string(
     getattr(
@@ -251,25 +254,6 @@ class _StaticChoicesCharField(models.CharField):
 
 class NameField(models.CharField):
     def __init__(self, **kwargs):
-        kwargs.setdefault(
-            "validators",
-            [
-                RegexValidator(
-                    r"^[-a-z0-9_]+$",
-                    message=_(
-                        "Enter a value consisting only of lowercase letters,"
-                        " numbers, dashes and the underscore."
-                    ),
-                ),
-            ],
-        )
-        kwargs.setdefault(
-            "help_text",
-            _(
-                "Data is saved using this name. Changing it may result in data loss."
-                " This field only allows a-z, 0-9, - and _ as characters."
-            ),
-        )
         super().__init__(**kwargs)
 
     def deconstruct(self):
@@ -311,6 +295,9 @@ class FormField(models.Model):
         help_text=_("Optional default value of the field"),
     )
     is_required = models.BooleanField(_("is required"), default=True)
+    child_form = models.ForeignKey(
+        Form, related_name="child_forms", verbose_name=_("form"), on_delete=models.CASCADE
+    )
 
     class Meta:
         ordering = ["ordering", "id"]
@@ -333,7 +320,7 @@ class FormField(models.Model):
 
     def get_choices(self):
         def get_tuple(value):
-            return (slugify(value.strip()), value.strip())
+            return (value.strip(), value.strip())
 
         choices = [get_tuple(value) for value in self.choices.split(",")]
         if not self.is_required and self.type == "select":
@@ -345,7 +332,7 @@ class FormField(models.Model):
         return types[self.type](**kwargs)
 
     def add_formfield(self, fields, form):
-        fields[slugify(self.name)] = self.formfield()
+        fields[self.name] = self.formfield()
 
     def formfield(self):
         kwargs = dict(
@@ -357,10 +344,26 @@ class FormField(models.Model):
         if self.choices:
             kwargs["choices"] = self.get_choices()
             # The value of individual choices is slugified too.
-            kwargs["initial"] = slugify(self.default_value)
+            kwargs["initial"] = self.default_value
         return self.get_type(**kwargs)
 
 
+    def get_field_attribue(self):
+        kwargs = dict(
+            label=self.title,
+            required=self.is_required,
+            initial=self.default_value,
+            help_text=self.help_text,
+        )
+        if self.choices:
+            kwargs["choices"] = self.get_choices()
+            # The value of individual choices is slugified too.
+            kwargs["initial"] = self.default_value
+        if self.type == 'model':
+            form = self.child_form.form_class()
+            kwargs['fields'] = [e.get_field_attribue() for e in form.fields.all()]
+        kwargs['hidden'] = self.type == 'hidden'
+        return kwargs
 class FormSubmission(models.Model):
     submitted_at = models.DateTimeField(_("submitted at"), auto_now_add=True)
     form = models.ForeignKey(

@@ -19,6 +19,9 @@ def require_choices(field):
         )
 
 
+
+    
+
 FIELD_TYPES = [
     {
         "type": "text",
@@ -76,6 +79,12 @@ FIELD_TYPES = [
         "type": "hidden",
         "verbose_name": _("hidden"),
         "field": partial(forms.CharField, widget=forms.HiddenInput),
+        "clean_field": [disallow_choices],
+    },
+    {
+        "type": "model",
+        "verbose_name": _("model"),
+        "field": partial(forms.JSONField, widget=forms.JSONField),
         "clean_field": [disallow_choices],
     },
 ]
